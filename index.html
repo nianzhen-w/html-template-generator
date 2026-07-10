@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Template Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      padding: 30px;
+      line-height: 1.6;
+    }
+    h1 { text-align: center; margin-bottom: 10px; color: #232f3e; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .panel {
+      background: #fff; border-radius: 12px; padding: 25px;
+      margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .panel h2 {
+      font-size: 1.1em; margin-bottom: 15px; color: #232f3e;
+      border-bottom: 2px solid #ff9900; padding-bottom: 8px;
+    }
+    .dnd-container { display: flex; gap: 20px; min-height: 300px; }
+    .block-pool {
+      flex: 1; border: 2px dashed #ccc; border-radius: 10px;
+      padding: 15px; background: #fafafa; min-height: 300px;
+    }
+    .block-pool h3 {
+      font-size: 0.9em; color: #888; margin-bottom: 10px;
+      text-align: center; text-transform: uppercase; letter-spacing: 1px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📋 HTML Template Generator</h1>
+  <p class="subtitle">Drag blocks from the left into the right zone to build your template. Order matters!</p>
+
+  <!-- Drag & Drop -->
+  <div class="panel">
+    <h2>① Select & Arrange Blocks</h2>
+    <div class="dnd-container">
+      <div class="block-pool" id="blockPool">
+        <h3>Available Blocks</h3>
+      </div>
+      <div class="drop-zone" id="dropZone">
+        <h3>Your Template (drop here)</h3>
+        <div class="placeholder" id="dropPlaceholder">⬅ Drag blocks here in the order you want them</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Settings -->
+  <div class="panel">
+    <h2>② Image Size Settings</h2>
+    <div class="settings-row">
+      <label>Normal image:</label>
+      <div class="img-size-group" id="normalSize">
+        <span class="radio-btn" onclick="setSize('normal', 200)">200px</span>
+        <span class="radio-btn active" onclick="setSize('normal', 300)">300px</span>
+        <span class="radio-btn" onclick="setSize('normal', 350)">350px</span>
+        <span class="radio-btn" onclick="setSize('normal', 450)">450px</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label>Tall image (mobile SS):</label>
+      <div class="img-size-group" id="mobileSize">
+        <span class="radio-btn active" onclick="setSize('mobile', 200)">200px</span>
+        <span class="radio-btn" onclick="setSize('mobile', 250)">250px</span>
+        <span class="radio-btn" onclick="setSize('mobile', 300)">300px</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label>Gap between images:</label>
+      <div class="img-size-group" id="gapSize">
+        <span class="radio-btn active" onclick="setSize('gap', 20)">20px</span>
+        <span class="radio-btn" onclick="setSize('gap', 25)">25px</span>
+        <span class="radio-btn" onclick="setSize('gap', 30)">30px</span>
+      </div>
+    </div>
+    <p class="note">* All images use span + margin-right wrapper for consistent formatting</p>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn-generate" onclick="generate()">🚀 Generate Template</button>
+    <button class="btn-clear" onclick="clearDropZone()">🗑 Clear</button>
+    <button class="btn-help" onclick="toggleHelp()">💡 Feeling Lost?</button>
+  </div>
+
+  <!-- Output -->
+  <div class="panel" style="margin-top: 20px;">
+    <h2>③ Generated Output</h2>
+    <div class="output-area">
+      <button class="btn-copy" onclick="copyOutput()">📋 Copy</button>
+      <textarea id="output" placeholder="Your template will appear here..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Help Panel Overlay -->
+<div class="help-overlay" id="helpOverlay" onclick="closeHelp(event)">
+  <div class="help-panel" id="helpPanel">
+    <div class="help-header">
+      <h2>💡 Feeling Lost? Here's some help!</h2>
+      <button class="help-close" onclick="toggleHelp()">✕</button>
+    </div>
+    <div class="help-content">
+      <div class="help-tabs">
+        <button class="help-tab active" onclick="showTab('blocks')">📐 Which Block?</button>
+        <button class="help-tab" onclick="showTab('images')">🖼 Image Guide</button>
+        <button class="help-tab" onclick="showTab('cheat')">🏗 Cheat Sheet</button>
+        <button class="help-tab" onclick="showTab('faq')">❓ FAQ</button>
+      </div>
+
+      <!-- Tab: Which Block -->
+      <div class="tab-content" id="tab-blocks">
+        <h3>Which block should I use?</h3>
+        <table class="help-table">
+          <tr><th>I want to...</th><th>Use this block</th></tr>
+          <tr><td>Add a big page title at the top</td><td><b>Page Title</b></td></tr>
+          <tr><td>Create a clickable table of contents</td><td><b>Navigation Menu</b></td></tr>
+          <tr><td>Start a major new section</td><td><b>Section Heading (h2)</b></td></tr>
+          <tr><td>Add a feature/topic within a section</td><td><b>Feature Block (h3)</b></td></tr>
+          <tr><td>Add a smaller sub-topic</td><td><b>Sub Heading (h4)</b></td></tr>
+          <tr><td>List items with bullet points</td><td><b>Bullet List</b></td></tr>
+          <tr><td>List items with bold names + links</td><td><b>Bold Link List</b></td></tr>
+          <tr><td>Show numbered instructions</td><td><b>Step Instructions</b></td></tr>
+          <tr><td>Show a single PC/wide screenshot</td><td><b>Single Image</b></td></tr>
+          <tr><td>Show a single phone screenshot</td><td><b>Single Image (tall)</b></td></tr>
+          <tr><td>Show 2 PC images next to each other</td><td><b>Side-by-Side Images</b></td></tr>
+          <tr><td>Show 2 phone screenshots side by side</td><td><b>Side-by-Side (tall)</b></td></tr>
+          <tr><td>Write a paragraph then show an image</td><td><b>Text + Image</b></td></tr>
+          <tr><td>Add a clickable link inside text</td><td><b>Link Paragraph</b></td></tr>
+          <tr><td>Mark something as "coming soon"</td><td><b>TBU Placeholder</b></td></tr>
+          <tr><td>End the page with a sign-off</td><td><b>Closing Text</b></td></tr>
+        </table>
+      </div>
+
+      <!-- Tab: Image Guide -->
+      <div class="tab-content" id="tab-images" style="display:none;">
+        <h3>Image Size Quick Reference</h3>
+        <div class="help-card">
+          <h4>🖥 PC / Wide Screenshots</h4>
+          <p>Use <code>max-width: 300px</code> or <code>350px</code></p>
+          <p>These are landscape/horizontal images from desktop screens.</p>
+        </div>
+        <div class="help-card">
+          <h4>📱 Mobile / Tall Screenshots</h4>
+          <p>Use <code>max-width: 200px</code></p>
+          <p>These are portrait/vertical images from phone screens (iPhone, etc.)</p>
+        </div>
+        <div class="help-card">
+          <h4>📐 Side-by-Side Layout</h4>
+          <p>Only the <b>first</b> image gets wrapped in <code>&lt;span style="margin-right: 20px"&gt;</code></p>
+          <p>The second image is just a plain <code>&lt;img&gt;</code> tag.</p>
+          <div class="code-example">
+&lt;span style="margin-right: 20px"&gt;&lt;img src="LEFT.jpg" style="max-width: 300px;"&gt;&lt;/span&gt;
+&lt;img src="RIGHT.jpg" style="max-width: 300px;"&gt;
+          </div>
+        </div>
+        <div class="help-card">
+          <h4>🎯 Single Image (with span wrapper)</h4>
+          <p>All single images also use span wrapper for consistency:</p>
+          <div class="code-example">
+&lt;span style="margin-right: 20px"&gt;&lt;img src="IMAGE.jpg" style="max-width: 300px;"&gt;&lt;/span&gt;
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Cheat Sheet -->
+      <div class="tab-content" id="tab-cheat" style="display:none;">
+        <h3>HTML Tag Cheat Sheet</h3>
+        <table class="help-table">
+          <tr><th>Tag</th><th>What it does</th><th>Needs closing?</th></tr>
+          <tr><td><code>&lt;h1&gt;</code> ~ <code>&lt;h6&gt;</code></td><td>Headings (h1 biggest → h6 smallest)</td><td>Yes: &lt;/h1&gt;</td></tr>
+          <tr><td><code>&lt;p&gt;</code></td><td>Paragraph (block of text)</td><td>Yes: &lt;/p&gt;</td></tr>
+          <tr><td><code>&lt;b&gt;</code></td><td>Bold text</td><td>Yes: &lt;/b&gt;</td></tr>
+          <tr><td><code>&lt;br&gt;</code></td><td>Line break</td><td>No (self-closing)</td></tr>
+          <tr><td><code>&lt;img&gt;</code></td><td>Image</td><td>No (self-closing)</td></tr>
+          <tr><td><code>&lt;a href="URL"&gt;</code></td><td>Clickable link</td><td>Yes: &lt;/a&gt;</td></tr>
+          <tr><td><code>&lt;ul&gt;</code></td><td>Unordered list (container)</td><td>Yes: &lt;/ul&gt;</td></tr>
+          <tr><td><code>&lt;li&gt;</code></td><td>List item (goes inside ul)</td><td>Yes: &lt;/li&gt;</td></tr>
+          <tr><td><code>&lt;section&gt;</code></td><td>Major content section</td><td>Yes: &lt;/section&gt;</td></tr>
+          <tr><td><code>&lt;div&gt;</code></td><td>Generic container</td><td>Yes: &lt;/div&gt;</td></tr>
+          <tr><td><code>&lt;nav&gt;</code></td><td>Navigation links area</td><td>Yes: &lt;/nav&gt;</td></tr>
+          <tr><td><code>&lt;span&gt;</code></td><td>Inline wrapper (for styling)</td><td>Yes: &lt;/span&gt;</td></tr>
+        </table>
+      </div>
+
+      <!-- Tab: FAQ -->
+      <div class="tab-content" id="tab-faq" style="display:none;">
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-item">
+          <h4>Q: What's the difference between section and div?</h4>
+          <p><b>section</b> = a meaningful chapter with a heading (like "Chapter 1").<br>
+          <b>div</b> = a generic box to group things together (no special meaning).<br>
+          Visually they look the same. Section is for big topics, div is for sub-blocks within.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Q: Can I use the same block multiple times?</h4>
+          <p>Yes! Just drag it from the left multiple times. Each drag creates a new copy in your template.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Q: What do the【brackets】mean in the output?</h4>
+          <p>They're placeholders! Replace them with your actual content (title, URLs, descriptions, etc.)</p>
+        </div>
+        <div class="faq-item">
+          <h4>Q: Why does every image have a span wrapper?</h4>
+          <p>For consistency. The span + margin-right ensures spacing works uniformly whether you have 1 image or 2 side-by-side.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Q: Do I need to add alt="" to images?</h4>
+          <p>Our current setup doesn't require alt attributes. But if accessibility is needed later, add alt="description" to each img tag.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Q: What's a TBU placeholder?</h4>
+          <p>"To Be Updated" — it's a commented-out section that won't show on the page. Use it to reserve space for future content.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    .drop-zone {
+      flex: 1; border: 2px dashed #ff9900; border-radius: 10px;
+      padding: 15px; background: #fffbf0; min-height: 300px; transition: background 0.2s;
+    }
+    .drop-zone.drag-over { background: #fff3d6; border-color: #e68a00; }
+    .drop-zone h3 {
+      font-size: 0.9em; color: #ff9900; margin-bottom: 10px;
+      text-align: center; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .drop-zone .placeholder { color: #ccc; text-align: center; padding: 40px 10px; font-size: 0.9em; }
+    .block-item {
+      padding: 10px 14px; margin-bottom: 8px; background: #fff;
+      border: 2px solid #e0e0e0; border-radius: 8px; cursor: grab;
+      transition: all 0.2s; user-select: none;
+    }
+    .block-item:active { cursor: grabbing; }
+    .block-item:hover { border-color: #ff9900; box-shadow: 0 2px 6px rgba(255,153,0,0.2); }
+    .block-item .block-title { font-weight: bold; font-size: 0.9em; }
+    .block-item .block-desc { font-size: 0.75em; color: #888; margin-top: 2px; }
+    .block-item .remove-btn {
+      float: right; background: #ff4444; color: #fff; border: none;
+      border-radius: 50%; width: 20px; height: 20px; font-size: 0.7em;
+      cursor: pointer; line-height: 20px; text-align: center; display: none;
+    }
+    .drop-zone .block-item .remove-btn { display: inline-block; }
+    .drop-zone .block-item { border-color: #ff9900; background: #fff8ee; }
+    .settings-row { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; flex-wrap: wrap; }
+    .settings-row label { font-size: 0.9em; color: #555; min-width: 160px; }
+    .img-size-group { display: flex; gap: 6px; }
+    .img-size-group .radio-btn {
+      padding: 5px 14px; border: 1px solid #ccc; border-radius: 15px;
+      cursor: pointer; font-size: 0.85em; transition: all 0.2s;
+    }
+    .img-size-group .radio-btn.active { background: #ff9900; color: #fff; border-color: #ff9900; }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-generate {
+      flex: 1; padding: 14px; background: #ff9900; color: #fff; border: none;
+      border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer;
+    }
+    .btn-generate:hover { background: #e68a00; }
+    .btn-clear {
+      padding: 14px 24px; background: #666; color: #fff; border: none;
+      border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer;
+    }
+    .btn-clear:hover { background: #444; }
+    .btn-help {
+      padding: 14px 24px; background: #5c6bc0; color: #fff; border: none;
+      border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer;
+    }
+    .btn-help:hover { background: #3f51b5; }
+    .output-area { position: relative; }
+    .output-area textarea {
+      width: 100%; min-height: 400px; padding: 15px;
+      font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85em;
+      border: 1px solid #ddd; border-radius: 8px; background: #1e1e1e;
+      color: #d4d4d4; resize: vertical; line-height: 1.5;
+    }
+    .btn-copy {
+      position: absolute; top: 10px; right: 10px; padding: 8px 16px;
+      background: #ff9900; color: #fff; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.85em; font-weight: bold;
+    }
+    .btn-copy:hover { background: #e68a00; }
+    .btn-copy.copied { background: #4caf50; }
+    .note { font-size: 0.8em; color: #888; margin-top: 8px; }
+</style>
+
+<style>
+    /* Help Panel Styles */
+    .help-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;
+    }
+    .help-overlay.show { display: flex; }
+    .help-panel {
+      background: #fff; border-radius: 16px; width: 90%; max-width: 750px;
+      max-height: 85vh; overflow-y: auto; padding: 30px; position: relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .help-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .help-header h2 { font-size: 1.3em; color: #5c6bc0; }
+    .help-close {
+      background: none; border: none; font-size: 1.5em; cursor: pointer;
+      color: #888; padding: 5px 10px;
+    }
+    .help-close:hover { color: #333; }
+    .help-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .help-tab {
+      padding: 8px 16px; border: 2px solid #e0e0e0; border-radius: 20px;
+      background: #fff; cursor: pointer; font-size: 0.85em; transition: all 0.2s;
+    }
+    .help-tab.active { background: #5c6bc0; color: #fff; border-color: #5c6bc0; }
+    .help-tab:hover { border-color: #5c6bc0; }
+    .tab-content h3 { margin-bottom: 15px; color: #333; }
+    .help-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    .help-table th { background: #f0f0f0; padding: 10px; text-align: left; }
+    .help-table td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+    .help-table tr:hover { background: #f9f9f9; }
+    .help-card {
+      background: #f8f9ff; border: 1px solid #e0e4f0; border-radius: 10px;
+      padding: 15px; margin-bottom: 12px;
+    }
+    .help-card h4 { margin-bottom: 8px; color: #5c6bc0; }
+    .help-card code { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    .code-example {
+      background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px;
+      font-family: 'Consolas', monospace; font-size: 0.8em; margin-top: 8px;
+      white-space: pre-wrap; line-height: 1.6;
+    }
+    .faq-item { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #eee; }
+    .faq-item h4 { color: #5c6bc0; margin-bottom: 6px; }
+    .faq-item p { font-size: 0.9em; color: #555; }
+</style>
+
+<script>
+    // Block definitions
+    const blocks = [
+      { id: 'pageTitle', title: 'Page Title', desc: 'h1 + description text' },
+      { id: 'nav', title: 'Navigation Menu', desc: 'nav + anchor links' },
+      { id: 'sectionH2', title: 'Section Heading (h2)', desc: 'section + h2 + text' },
+      { id: 'divH3', title: 'Feature Block (h3)', desc: 'div + h3 + text' },
+      { id: 'subHeading', title: 'Sub Heading (h4)', desc: 'h4 small heading' },
+      { id: 'list', title: 'Bullet List', desc: 'ul + li items' },
+      { id: 'boldList', title: 'Bold Link List', desc: 'b + a href list items' },
+      { id: 'steps', title: 'Step Instructions', desc: 'numbered steps + image' },
+      { id: 'singleImg', title: 'Single Image', desc: '1 image (normal width)' },
+      { id: 'singleImgMobile', title: 'Single Image (tall/mobile)', desc: '1 tall image (mobile screenshot)' },
+      { id: 'doubleImg', title: 'Side-by-Side Images', desc: '2 normal images with gap' },
+      { id: 'doubleImgMobile', title: 'Side-by-Side Images (tall)', desc: '2 tall images (mobile SS)' },
+      { id: 'textWithImg', title: 'Text + Image', desc: 'paragraph followed by image' },
+      { id: 'linkText', title: 'Link Paragraph', desc: 'text with a href link' },
+      { id: 'tbu', title: 'TBU Placeholder', desc: 'commented-out section' },
+      { id: 'closing', title: 'Closing Text', desc: 'end-of-page message' },
+    ];
+
+    let sizes = { normal: 300, mobile: 200, gap: 20 };
+    let dropCounter = 0;
+
+    // Initialize
+    function initPool() {
+      const pool = document.getElementById('blockPool');
+      blocks.forEach(block => { pool.appendChild(createBlockEl(block)); });
+    }
+
+    function createBlockEl(block, inDrop = false) {
+      const el = document.createElement('div');
+      el.className = 'block-item';
+      el.draggable = true;
+      el.dataset.blockId = block.id;
+      el.dataset.instanceId = inDrop ? 'drop-' + (++dropCounter) : 'pool-' + block.id;
+      el.innerHTML = `
+        <button class="remove-btn" onclick="removeBlock(this)">✕</button>
+        <div class="block-title">${block.title}</div>
+        <div class="block-desc">${block.desc}</div>
+      `;
+      el.addEventListener('dragstart', handleDragStart);
+      el.addEventListener('dragend', handleDragEnd);
+      return el;
+    }
+</script>
+
+<script>
+    // Drag & Drop
+    let draggedEl = null;
+    let dragSource = null;
+
+    function handleDragStart(e) {
+      draggedEl = this;
+      dragSource = this.parentElement.id === 'dropZone' ? 'drop' : 'pool';
+      this.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'copyMove';
+    }
+
+    function handleDragEnd(e) {
+      this.style.opacity = '1';
+      draggedEl = null;
+      dragSource = null;
+    }
+
+    function initDropZone() {
+      const dz = document.getElementById('dropZone');
+
+      dz.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = dragSource === 'drop' ? 'move' : 'copy';
+        dz.classList.add('drag-over');
+        const afterEl = getDragAfterElement(dz, e.clientY);
+        dz.querySelectorAll('.drag-indicator').forEach(el => el.remove());
+        const indicator = document.createElement('div');
+        indicator.className = 'drag-indicator';
+        indicator.style.cssText = 'height: 3px; background: #ff9900; border-radius: 2px; margin: 4px 0;';
+        if (afterEl) { dz.insertBefore(indicator, afterEl); }
+        else { dz.appendChild(indicator); }
+      });
+
+      dz.addEventListener('dragleave', (e) => {
+        dz.classList.remove('drag-over');
+        dz.querySelectorAll('.drag-indicator').forEach(el => el.remove());
+      });
+
+      dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.classList.remove('drag-over');
+        dz.querySelectorAll('.drag-indicator').forEach(el => el.remove());
+        const placeholder = document.getElementById('dropPlaceholder');
+        if (placeholder) placeholder.style.display = 'none';
+        const afterEl = getDragAfterElement(dz, e.clientY);
+        const blockId = draggedEl.dataset.blockId;
+        const block = blocks.find(b => b.id === blockId);
+        if (dragSource === 'pool') {
+          const newEl = createBlockEl(block, true);
+          if (afterEl) { dz.insertBefore(newEl, afterEl); }
+          else { dz.appendChild(newEl); }
+        } else {
+          if (afterEl) { dz.insertBefore(draggedEl, afterEl); }
+          else { dz.appendChild(draggedEl); }
+        }
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const items = [...container.querySelectorAll('.block-item:not([style*="opacity: 0.5"])')];
+      return items.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) { return { offset, element: child }; }
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function removeBlock(btn) {
+      btn.parentElement.remove();
+      const dz = document.getElementById('dropZone');
+      if (!dz.querySelector('.block-item')) {
+        document.getElementById('dropPlaceholder').style.display = 'block';
+      }
+    }
+
+    function clearDropZone() {
+      const dz = document.getElementById('dropZone');
+      dz.querySelectorAll('.block-item').forEach(el => el.remove());
+      document.getElementById('dropPlaceholder').style.display = 'block';
+      document.getElementById('output').value = '';
+    }
+</script>
+
+<script>
+    // Size settings
+    function setSize(type, value) {
+      sizes[type] = value;
+      const groupId = type === 'normal' ? 'normalSize' : type === 'mobile' ? 'mobileSize' : 'gapSize';
+      document.getElementById(groupId).querySelectorAll('.radio-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === value + 'px');
+      });
+    }
+
+    // Help panel
+    function toggleHelp() {
+      document.getElementById('helpOverlay').classList.toggle('show');
+    }
+    function closeHelp(event) {
+      if (event.target === document.getElementById('helpOverlay')) { toggleHelp(); }
+    }
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.help-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    // Generate
+    function generate() {
+      const dz = document.getElementById('dropZone');
+      const items = dz.querySelectorAll('.block-item');
+      const n = sizes.normal;
+      const m = sizes.mobile;
+      const g = sizes.gap;
+
+      if (items.length === 0) {
+        document.getElementById('output').value = '⬆ Drag some blocks into the drop zone first!';
+        return;
+      }
+
+      const parts = [];
+      items.forEach(item => {
+        const blockId = item.dataset.blockId;
+        switch (blockId) {
+          case 'pageTitle':
+            parts.push(`<section>\n  <h1>【Title here】</h1>\n  <p>【Description text here】</p>\n</section>`);
+            break;
+          case 'nav':
+            parts.push(`<nav>\n  <a href="#section1">【Link 1】</a><br>\n  <a href="#section2">【Link 2】</a><br>\n  <a href="#section3">【Link 3】</a><br>\n</nav>`);
+            break;
+          case 'sectionH2':
+            parts.push(`<section>\n  <h2>【Section Title】</h2>\n  <p>【Section description】</p>\n</section>`);
+            break;
+          case 'divH3':
+            parts.push(`<div id="【sectionID】">\n  <h3>【Block Title】</h3>\n  <p>【Description text here】</p>\n</div>`);
+            break;
+          case 'subHeading':
+            parts.push(`<h4>【Sub Heading】</h4>`);
+            break;
+          case 'list':
+            parts.push(`<ul>\n  <li>【Item 1】</li>\n  <li>【Item 2】</li>\n  <li>【Item 3】</li>\n</ul>`);
+            break;
+          case 'boldList':
+            parts.push(`<ul>\n  <li><b><a href="【URL】">【Item Name】</a></b>：【Description】</li>\n  <li><b><a href="【URL】">【Item Name】</a></b>：【Description】</li>\n  <li><b><a href="【URL】">【Item Name】</a></b>：【Description】</li>\n</ul>`);
+            break;
+          case 'steps':
+            parts.push(`<p>\n  1：【Step 1 description】<br>\n  2：【Step 2 description】<br>\n  3：【Step 3 description】\n</p>\n<p>\n  <span style="margin-right: ${g}px"><img src="【Image URL】" style="max-width: ${n}px;"></span>\n</p>`);
+            break;
+          case 'singleImg':
+            parts.push(`<p>\n  <span style="margin-right: ${g}px"><img src="【Image URL】" style="max-width: ${n}px;"></span>\n</p>`);
+            break;
+          case 'singleImgMobile':
+            parts.push(`<p>\n  <span style="margin-right: ${g}px"><img src="【Image URL】" style="max-width: ${m}px;"></span>\n</p>`);
+            break;
+          case 'doubleImg':
+            parts.push(`<p>\n  <span style="margin-right: ${g}px"><img src="【Left Image URL】" style="max-width: ${n}px;"></span>\n  <img src="【Right Image URL】" style="max-width: ${n}px;">\n</p>`);
+            break;
+          case 'doubleImgMobile':
+            parts.push(`<p>\n  <span style="margin-right: ${g}px"><img src="【Left Image URL】" style="max-width: ${m}px;"></span>\n  <img src="【Right Image URL】" style="max-width: ${m}px;">\n</p>`);
+            break;
+          case 'textWithImg':
+            parts.push(`<p>【Description text here】</p>\n<p>\n  <span style="margin-right: ${g}px"><img src="【Image URL】" style="max-width: ${n}px;"></span>\n</p>`);
+            break;
+          case 'linkText':
+            parts.push(`<p>【Text】<a href="【URL】">【Link Text】</a>【More text】</p>`);
+            break;
+          case 'tbu':
+            parts.push(`<!--- TBU ----\n<div id="【sectionID】">\n  <h3>（TBU）【Feature Name】</h3>\n</div>\n------------->`);
+            break;
+          case 'closing':
+            parts.push(`<p>【Closing message here】<br>【Follow-up text】</p>`);
+            break;
+        }
+      });
+      document.getElementById('output').value = parts.join('\n\n');
+    }
+
+    function copyOutput() {
+      const textarea = document.getElementById('output');
+      textarea.select();
+      document.execCommand('copy');
+      const btn = document.querySelector('.btn-copy');
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    // Init
+    initPool();
+    initDropZone();
+</script>
+</body>
+</html>
